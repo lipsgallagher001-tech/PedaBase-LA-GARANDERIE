@@ -10,6 +10,7 @@ import UploadResource from './components/UploadResource';
 import Profile from './components/Profile';
 import UserManagement from './components/UserManagement';
 import Login from './components/Login';
+import Register from './components/Register';
 
 const Sidebar: React.FC<{ currentPage: Page, setPage: (page: Page) => void, onLogout: () => void }> = ({ currentPage, setPage, onLogout }) => {
     const navItems = [
@@ -100,13 +101,32 @@ const App: React.FC = () => {
     const [selectedResource, setSelectedResource] = useState<Resource | null>(null);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [user, setUser] = useState<User | null>(null);
+    const [showRegister, setShowRegister] = useState(false);
+    const [registeredUsers, setRegisteredUsers] = useState(users);
 
     const handleLogin = (email: string, password: string) => {
-        const foundUser = users.find(u => u.email === email);
+        const foundUser = registeredUsers.find(u => u.email === email);
         if (foundUser) {
             setUser(foundUser);
             setIsAuthenticated(true);
         }
+    };
+
+    const handleRegister = (name: string, email: string, password: string, role: string) => {
+        const newUser: User = {
+            id: `u${registeredUsers.length + 1}`,
+            name,
+            email,
+            password,
+            avatar: `https://picsum.photos/seed/${email}/100/100`,
+            role: role as 'Enseignant' | 'Modérateur' | 'Administrateur',
+            status: 'Actif',
+            lastActivity: new Date().toLocaleDateString('fr-FR'),
+        };
+        setRegisteredUsers([...registeredUsers, newUser]);
+        setUser(newUser);
+        setIsAuthenticated(true);
+        setShowRegister(false);
     };
 
     const handleLogout = () => {
@@ -144,7 +164,11 @@ const App: React.FC = () => {
     };
 
     if (!isAuthenticated) {
-        return <Login onLogin={handleLogin} />;
+        return showRegister ? (
+            <Register onRegister={handleRegister} onBackToLogin={() => setShowRegister(false)} />
+        ) : (
+            <Login onLogin={handleLogin} onRegisterClick={() => setShowRegister(true)} />
+        );
     }
 
     return (

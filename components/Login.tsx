@@ -3,9 +3,10 @@ import { UserCircleIcon } from './icons';
 
 interface LoginProps {
     onLogin: (email: string, password: string) => void;
+    onRegisterClick: () => void;
 }
 
-const Login: React.FC<LoginProps> = ({ onLogin }) => {
+const Login: React.FC<LoginProps> = ({ onLogin, onRegisterClick }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -115,6 +116,16 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                         </form>
 
                         <div className="mt-6 pt-6 border-t border-neutral-200 text-center">
+                            <p className="text-sm text-neutral-700 mb-4">
+                                Pas encore de compte?{' '}
+                                <button
+                                    type="button"
+                                    onClick={onRegisterClick}
+                                    className="font-semibold text-brand-secondary hover:text-brand-primary transition"
+                                >
+                                    S'inscrire
+                                </button>
+                            </p>
                             <p className="text-xs text-neutral-500">
                                 Besoin d'aide? Contactez l'administrateur système
                             </p>
