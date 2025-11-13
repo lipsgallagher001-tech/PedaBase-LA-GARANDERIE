@@ -9,8 +9,9 @@ import ResourceDetail from './components/ResourceDetail';
 import UploadResource from './components/UploadResource';
 import Profile from './components/Profile';
 import UserManagement from './components/UserManagement';
+import Login from './components/Login';
 
-const Sidebar: React.FC<{ currentPage: Page, setPage: (page: Page) => void }> = ({ currentPage, setPage }) => {
+const Sidebar: React.FC<{ currentPage: Page, setPage: (page: Page) => void, onLogout: () => void }> = ({ currentPage, setPage, onLogout }) => {
     const navItems = [
         { name: 'Dashboard', icon: HomeIcon, page: 'Dashboard' as Page },
         { name: 'Resources', icon: FolderIcon, page: 'Resources' as Page },
@@ -53,7 +54,7 @@ const Sidebar: React.FC<{ currentPage: Page, setPage: (page: Page) => void }> = 
                  <NavLink item={{ name: 'Profile', icon: UserCircleIcon, page: 'Profile' as Page }} isSelected={currentPage === 'Profile'} />
                  <NavLink item={{ name: 'Paramètres', icon: CogIcon, page: 'Settings' as Page }} isSelected={currentPage === 'Settings'} />
                  <NavLink item={{ name: 'Aide', icon: QuestionMarkCircleIcon, page: 'Help' as Page }} isSelected={currentPage === 'Help'} />
-                 <a href="#" className="flex items-center px-4 py-2.5 text-sm font-medium text-neutral-700 hover:bg-red-50 hover:text-red-700 rounded-lg transition-colors duration-200">
+                 <a href="#" onClick={(e) => { e.preventDefault(); onLogout(); }} className="flex items-center px-4 py-2.5 text-sm font-medium text-neutral-700 hover:bg-red-50 hover:text-red-700 rounded-lg transition-colors duration-200">
                     <LogoutIcon className="w-5 h-5 mr-3" />
                     Déconnexion
                  </a>
@@ -97,12 +98,28 @@ const Header: React.FC<{ user: User, onProfileClick: () => void }> = ({ user, on
 const App: React.FC = () => {
     const [page, setPage] = useState<Page>('Dashboard');
     const [selectedResource, setSelectedResource] = useState<Resource | null>(null);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [user, setUser] = useState<User | null>(null);
+
+    const handleLogin = (email: string, password: string) => {
+        const foundUser = users.find(u => u.email === email);
+        if (foundUser) {
+            setUser(foundUser);
+            setIsAuthenticated(true);
+        }
+    };
+
+    const handleLogout = () => {
+        setIsAuthenticated(false);
+        setUser(null);
+        setPage('Dashboard');
+    };
 
     const handleViewResource = (resource: Resource) => {
         setSelectedResource(resource);
         setPage('ResourceDetail');
     };
-    
+
     const handleUploadResource = () => {
         setPage('UploadResource');
     };
@@ -118,7 +135,7 @@ const App: React.FC = () => {
             case 'UploadResource':
                 return <UploadResource onCancel={() => setPage('Resources')} />;
             case 'Profile':
-                return <Profile user={currentUser} onViewResource={handleViewResource} />;
+                return <Profile user={user || currentUser} onViewResource={handleViewResource} />;
             case 'UserManagement':
                  return <UserManagement users={users} />;
             default:
@@ -126,11 +143,15 @@ const App: React.FC = () => {
         }
     };
 
+    if (!isAuthenticated) {
+        return <Login onLogin={handleLogin} />;
+    }
+
     return (
         <div className="min-h-screen bg-neutral-100">
-            <Sidebar currentPage={page} setPage={setPage} />
+            <Sidebar currentPage={page} setPage={setPage} onLogout={handleLogout} />
             <div className="lg:pl-64">
-                <Header user={currentUser} onProfileClick={() => setPage('Profile')} />
+                <Header user={user || currentUser} onProfileClick={() => setPage('Profile')} />
                 <main>
                     {renderPage()}
                 </main>
